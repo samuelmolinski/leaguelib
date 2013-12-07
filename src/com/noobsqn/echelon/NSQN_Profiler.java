@@ -1,4 +1,4 @@
-package com.noobsqn;
+package com.noobsqn.echelon;
 
 
 import com.achimala.leaguelib.connection.*;

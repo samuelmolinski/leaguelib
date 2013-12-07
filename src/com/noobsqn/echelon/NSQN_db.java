@@ -1,14 +1,7 @@
-package com.noobsqn;
+package com.noobsqn.echelon;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-import com.mongodb.WriteConcern;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.DBCursor;
-import com.mongodb.ServerAddress;
+import com.mongodb.*;
+import com.noobsqn.util.Logg;
 
 import java.awt.*;
 import java.net.UnknownHostException;
@@ -20,12 +13,71 @@ import java.util.Set;
  */
 
 public class NSQN_db {
+    public static MongoClient mongoClient;
+    public static DB db;
 
-    public static void main(String[] args) throws UnknownHostException {
+    public NSQN_db() {
+        try {
+            mongoClient = new MongoClient( "noobsqn.com.br" , 27017 );
+            db = mongoClient.getDB( "test" );
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+    }
 
-        MongoClient mongoClient = new MongoClient( "noobsqn.com.br" , 27017 );
+    public void insertCollection(String collectionName, BasicDBList elements){
+        Logg.d("addTable START", collectionName);
+        DBCollection collection = null;
+        //collection = db.getCollection(collectionName);
+        if(null != db.getCollection(collectionName)){
+            collection = db.getCollection(collectionName);
+        } else {
+            collection = db.createCollection(collectionName, null);
+        }
+        BasicDBObject query;
+        collection.insert(elements, new WriteConcern());
+        long count = collection.count();
+        Logg.d("addTable TOTAL", String.valueOf(count));
+        Logg.d("addTable END", collectionName);
+    }
 
-        DB db = mongoClient.getDB( "test" );
+    public void updateCollection(String collectionName, BasicDBList elements){
+        Logg.d("addTable START", collectionName);
+        DBCollection collection = null;
+        //collection = db.getCollection(collectionName);
+        if(null != db.getCollection(collectionName)){
+            collection = db.getCollection(collectionName);
+        } else {
+            collection = db.createCollection(collectionName, null);
+        }
+        BasicDBObject query;
+        for(int i = 0; i < elements.size(); i++){
+            BasicDBObject e = (BasicDBObject) elements.get(i);
+            query = new BasicDBObject().append("id", e.get("id"));
+
+            DBCursor myCursor = collection.find(query);
+            while (myCursor.hasNext()){
+                DBObject obj = myCursor.next();
+                System.out.println(obj);
+            }
+
+            WriteResult wr = collection.update(query, (BasicDBObject) elements.get(i), true, false);
+            Logg.d("collection.update", wr.toString());
+        }
+        long count = collection.count();
+        Logg.d("addTable TOTAL", String.valueOf(count));
+        Logg.d("addTable END", collectionName);
+    }
+
+    public void purgeCollection(String collectionName){
+        if(null != db.getCollection(collectionName)){
+           db.getCollection(collectionName).drop();
+            Logg.d("drop collection", collectionName);
+        }
+    }
+
+    public void test() throws UnknownHostException {
+
         db.createCollection("items", null);
         db.createCollection("champions", null);
         DBCollection items = db.getCollection("items");
