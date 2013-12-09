@@ -52,9 +52,9 @@ public class MainTest {
     }
     
     public static void main(String[] args) throws Exception {
-        final LeagueConnection c = new LeagueConnection(LeagueServer.NORTH_AMERICA);
-        c.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.NORTH_AMERICA, "3.13.xx", "lolteam0debug", args[0]));
-        final String SUMMONER_TO_LOOK_UP = "the breadmaker";
+        final LeagueConnection c = new LeagueConnection(LeagueServer.BRAZIL);
+        c.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.14.13_11_21_11_02", "noobsqnbot01", "n00bsqnb0t"));
+        final String SUMMONER_TO_LOOK_UP = "Infernal Mole";
         
         Map<LeagueAccount, LeagueException> exceptions = c.getAccountQueue().connectAll();
         if(exceptions != null) {
@@ -154,26 +154,26 @@ public class MainTest {
                         lock.unlock();
                     }
                 });
-                
+
                 incrementCount();
                 System.out.println("Getting game data...");
                 c.getGameService().fillActiveGameData(summoner, new Callback<LeagueSummoner>() {
                     public void onCompletion(LeagueSummoner summoner) {
                         lock.lock();
                         if(summoner.getActiveGame() != null) {
-			    LeagueGame game = summoner.getActiveGame();
+                            LeagueGame game = summoner.getActiveGame();
                             System.out.println("PLAYER TEAM (" + game.getPlayerTeamType() + "):");
                             for(LeagueSummoner sum : summoner.getActiveGame().getPlayerTeam())
                                 System.out.println("    " + sum);
                             System.out.println("ENEMY TEAM (" + game.getEnemyTeamType() + "):");
                             for(LeagueSummoner sum : summoner.getActiveGame().getEnemyTeam())
                                 System.out.println("    " + sum);
-			    System.out.println("PLAYER TEAM BANS:");
-			    for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getPlayerTeamType()))
-				System.out.println("    " + champion.getName());
-			    System.out.println("ENEMY TEAM BANS:");
-			    for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getEnemyTeamType()))
-				System.out.println("    " + champion.getName());
+                            System.out.println("PLAYER TEAM BANS:");
+                            for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getPlayerTeamType()))
+                                System.out.println("    " + champion.getName());
+                            System.out.println("ENEMY TEAM BANS:");
+                            for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getEnemyTeamType()))
+                                System.out.println("    " + champion.getName());
                         } else {
                             System.out.println("NOT IN GAME");
                         }
@@ -182,7 +182,47 @@ public class MainTest {
                         decrementCount();
                         lock.unlock();
                     }
-                    
+
+                    public void onError(Exception ex) {
+                        lock.lock();
+                        if(ex instanceof LeagueException) {
+                            System.out.println(((LeagueException)ex).getErrorCode());
+                        } else {
+                            System.out.println(ex.getMessage());
+                        }
+                        decrementCount();
+                        lock.unlock();
+                    }
+                });
+
+                incrementCount();
+                System.out.println("Getting game data...");
+                c.getPlayerStatsService().fillMatchHistory(summoner, new Callback<LeagueSummoner>() {
+                    public void onCompletion(LeagueSummoner summoner) {
+                        lock.lock();
+                        /*if(summoner.getMatchHistory() != null) {
+                            *//**//*LeagueGame game = summoner.getActiveGame();
+                            System.out.println("PLAYER TEAM (" + game.getPlayerTeamType() + "):");
+                            for(LeagueSummoner sum : summoner.getActiveGame().getPlayerTeam())
+                                System.out.println("    " + sum);
+                            System.out.println("ENEMY TEAM (" + game.getEnemyTeamType() + "):");
+                            for(LeagueSummoner sum : summoner.getActiveGame().getEnemyTeam())
+                                System.out.println("    " + sum);
+                            System.out.println("PLAYER TEAM BANS:");
+                            for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getPlayerTeamType()))
+                                System.out.println("    " + champion.getName());
+                            System.out.println("ENEMY TEAM BANS:");
+                            for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getEnemyTeamType()))
+                                System.out.println("    " + champion.getName());*//**//*
+                        } else {
+                            System.out.println("NO Histroy");
+                        }*/
+                        System.out.println();
+                        System.out.flush();
+                        decrementCount();
+                        lock.unlock();
+                    }
+
                     public void onError(Exception ex) {
                         lock.lock();
                         if(ex instanceof LeagueException) {

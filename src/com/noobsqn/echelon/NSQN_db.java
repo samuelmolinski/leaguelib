@@ -19,7 +19,7 @@ public class NSQN_db {
     public NSQN_db() {
         try {
             mongoClient = new MongoClient( "noobsqn.com.br" , 27017 );
-            db = mongoClient.getDB( "test" );
+            db = mongoClient.getDB( "NSQNEchelon" );
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
