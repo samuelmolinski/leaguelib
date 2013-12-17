@@ -38,7 +38,7 @@ public class NSQN_Profiler {
 
     public static void main(String[] args) throws Exception {
         final LeagueConnection c = new LeagueConnection(LeagueServer.BRAZIL);
-        c.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.14.13_11_21_11_02", "noobsqnbot01", "n00bsqnb0t"));
+        c.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.15.13_12_13_16_07", "noobsqnbot01", "n00bsqnb0t"));
         //final String SUMMONER_TO_LOOK_UP = "Infernal Mole";
         //final String SUMMONER_TO_LOOK_UP = "Nidhoggur";
         final JsonObject summonerProfile = new JsonObject();
