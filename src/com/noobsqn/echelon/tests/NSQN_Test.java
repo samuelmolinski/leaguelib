@@ -1,4 +1,4 @@
-package com.noobsqn.echelon;
+package com.noobsqn.echelon.tests;
 
 import java.sql.SQLException;
 

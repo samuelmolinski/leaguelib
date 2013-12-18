@@ -1,13 +1,10 @@
-package com.noobsqn.echelon;
+package com.noobsqn.echelon.tests;
 
-import com.google.gson.JsonObject;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.noobsqn.util.Logg;
 
 import java.sql.*;
-
-import java.io.File;
 
 /**
  * Created by Samuel on 05/12/13.

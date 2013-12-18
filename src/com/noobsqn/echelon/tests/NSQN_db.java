@@ -1,4 +1,4 @@
-package com.noobsqn.echelon;
+package com.noobsqn.echelon.tests;
 
 import com.mongodb.*;
 import com.noobsqn.util.Logg;
