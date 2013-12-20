@@ -11,3 +11,4 @@ src/com/gvaneyck/util
 *.MF
 test-console.sh
 .idea/workspace.xml
+.idea/libraries/lib.xml
