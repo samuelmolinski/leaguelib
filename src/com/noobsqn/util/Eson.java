@@ -25,11 +25,12 @@ public class Eson {
         } else if (tyob.type.equals("flex.messaging.io.ArrayCollection")) {
             JsonArray ja = new JsonArray();
             Object[] data = (Object[])tyob.get("array");
-            sb.append("ArrayCollection:[");
             for (int i = 0; i < data.length; i++)
             {
-                Gson gs = new s
-                ja.add().put(data[i]);
+                if(data[i].type)
+                JsonObject jo = new JsonObject();
+                jo.
+                jo.add().put(data[i]);
                 if (i < data.length - 1)
                     sb.append(", ");
             }
