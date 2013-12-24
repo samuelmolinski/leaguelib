@@ -9,6 +9,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.noobsqn.echelon.connection.EchLeagueConnection;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -44,9 +46,11 @@ public class Profiler {
         elc.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.15.13_12_13_16_07", "noobsqnbot01", "n00bsqnb0t"));
         //final String SUMMONER_TO_LOOK_UP = "Infernal Mole";
         //final String SUMMONER_TO_LOOK_UP = "Nidhoggur";
-        final Gson summonerProfile = new Gson();
+        Map<String, Collection<String>> map = new HashMap<>();
+        final JsonObject summonerProfile = new JsonObject();
         final LeagueSummoner s = new LeagueSummoner();
-        final String SUMMONER_TO_LOOK_UP = "zGuli";
+        //final String SUMMONER_TO_LOOK_UP = "zGuli";
+        final String SUMMONER_TO_LOOK_UP = "CrowZero";
 
         Map<LeagueAccount, LeagueException> exceptions = elc.connection.getAccountQueue().connectAll();
         if(exceptions != null) {
@@ -78,15 +82,15 @@ public class Profiler {
                 summonerProfile.getAsJsonObject("server").addProperty("serverCode", summoner.getServer().getServerCode());
                 summonerProfile.getAsJsonObject("server").addProperty("publicName", summoner.getServer().getPublicName());
                 summonerProfile.getAsJsonObject("server").addProperty("name", summoner.getServer().getPublicName());*/
-                summonerProfile.toJson(summoner);
-                elc.getEchSummonerService().fillPublicSummonerData(summoner, new Callback<LeagueSummoner>() {
-                    public void onCompletion(LeagueSummoner summoner) {
+                //summonerProfile.
+                elc.getEchSummonerService().fillPublicSummonerData(summoner, new Callback<JsonObject>() {
+                    public void onCompletion(JsonObject summoner) {
                         lock.lock();
                         System.out.println("Profile:");
-                        System.out.println("    Prev Highest Tier: " + summoner.getProfileInfo().getPreviousSeasonHighestTier());
+                        //System.out.println("    Prev Highest Tier: " + summoner.getProfileInfo().getPreviousSeasonHighestTier());
                         System.out.println();
                         System.out.flush();
-                        summonerProfile.toJson(summoner);
+                        //summonerProfile.toJson(summoner);
                         /*summonerProfile.add("profileInfo", new JsonObject());
                         summonerProfile.getAsJsonObject("profileInfo").add("previousSeasonHighestTier", new JsonObject());
                         summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("previousSeasonHighestTier").addProperty("name", summoner.getProfileInfo().getPreviousSeasonHighestTier().name());
@@ -143,7 +147,7 @@ public class Profiler {
                         //summonerProfile.getAsJsonObject("profileInfo").add("miniseries", new JsonObject());
                         //summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("miniseries").addProperty("target", summoner.getLeagueStats().getMiniSeries().getTarget());
 
-                        summonerProfile.toJson(summoner);
+                        //summonerProfile.toJson(summoner);
                         decrementCount();
                         lock.unlock();
                     }
@@ -175,7 +179,7 @@ public class Profiler {
                             System.out.println();
                         }
                         System.out.flush();
-                        summonerProfile.toJson(summoner);
+                        //summonerProfile.toJson(summoner);
                         decrementCount();
                         lock.unlock();
                     }
@@ -212,7 +216,7 @@ public class Profiler {
                         }
                         System.out.println();
                         System.out.flush();
-                        summonerProfile.toJson(summoner);
+                        //summonerProfile.toJson(summoner);
                         decrementCount();
                         lock.unlock();
                     }

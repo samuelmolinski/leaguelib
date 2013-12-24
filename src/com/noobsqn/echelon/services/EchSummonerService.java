@@ -8,6 +8,7 @@ import com.achimala.leaguelib.models.LeagueSummonerProfileInfo;
 import com.achimala.leaguelib.services.LeagueAbstractService;
 import com.achimala.leaguelib.services.SummonerService;
 import com.achimala.util.Callback;
+import com.google.gson.*;
 import com.gvaneyck.rtmp.TypedObject;
 import com.noobsqn.echelon.connection.EchLeagueConnection;
 
@@ -105,16 +106,25 @@ public class EchSummonerService extends LeagueAbstractService {
         summoner.setProfileInfo(new LeagueSummonerProfileInfo(obj.getTO("body").getTO("summoner")));
     }
 
-    public void fillPublicSummonerData(final LeagueSummoner summoner, final Callback<LeagueSummoner> callback) {
-        callAsynchronously("getAllPublicSummonerDataByAccount", new Object[] { summoner.getAccountId() }, new Callback<TypedObject>() {
+    public void fillPublicSummonerData(final LeagueSummoner summoner, final Callback<JsonObject> callback) {
+        callAsynchronously("getAllPublicSummonerDataByAccount", new Object[]{summoner.getAccountId()}, new Callback<TypedObject>() {
             public void onCompletion(TypedObject obj) {
                 try {
-                    summoner.setProfileInfo(new LeagueSummonerProfileInfo(obj.getTO("body").getTO("summoner")));
-                    callback.onCompletion(summoner);
-                } catch(Exception ex) {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(obj);
+                    JsonParser jp = new JsonParser();
+                    JsonObject jo = (JsonObject) jp.parse(json);
+
+                    System.out.println("- JSON - ");
+                    System.out.println(json);
+                    //summoner.setProfileInfo(new LeagueSummonerProfileInfo(obj.getTO("body").getTO("summoner")));
+
+                    callback.onCompletion(jo);
+                } catch (Exception ex) {
                     callback.onError(ex);
                 }
             }
+
             public void onError(Exception ex) {
                 callback.onError(ex);
             }

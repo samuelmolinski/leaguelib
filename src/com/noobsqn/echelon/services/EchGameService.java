@@ -20,7 +20,7 @@ public class EchGameService extends LeagueAbstractService {
     }
 
     public String getServiceName() {
-        return "echGameService";
+        return "gameService";
     }
 
     // FIXME: Not sure if this is the right way to handle this
