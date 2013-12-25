@@ -16,22 +16,23 @@ public class JsonTools {
     final static int JSONARRAY = 3;
     final static int JSONELEMENT = 4;
 
-    public JsonElement mergeObject(JsonElement host, JsonElement addition){
-        return mergeObject(host, addition, "");
+    public JsonElement add(JsonElement host, JsonElement addend){
+        return add(host, addend, "");
     }
 
-    public JsonElement mergeObject(JsonElement host, JsonElement addition, String key){
+    public JsonElement add(JsonElement host, JsonElement addend, String key){
         int host_type = getType(host);
-        int addition_type = getType(addition);
-        switch (addition_type){
+        int addition_type = getType(addend);
+        switch (host_type){
             case JSONPRIMITIVE :
-                if(!key.isEmpty()){ host.getAsJsonObject().addProperty(key, addition.toString()); }
+
+                //if(!key.isEmpty() && host.isJsonObject()){ host.getAsJsonObject().addProperty(key, addend.toString()); }
                 break;
             case JSONOBJECT :
-                addObject((JsonObject) host, (JsonObject) addition);
+                addObject((JsonObject) host, (JsonObject) addend);
                 break;
             case JSONARRAY :
-                    addArray(host, (JsonArray) addition, key);
+                    addArray(host, (JsonArray) addend, key);
                 break;
             default:// JSONNULL :
                 break;
@@ -41,22 +42,22 @@ public class JsonTools {
         return host;
     }
 
-    public JsonElement addObject(JsonObject host, JsonObject addition){
+    public JsonElement addObject(JsonElement host, JsonObject addition){
         for (Map.Entry<String,JsonElement> entry : addition.entrySet()) {
             String value = entry.getValue().toString();
             JsonElement njo = fromString(value);
             /*if(null == host.get(entry.getKey())) {
-                host = (JsonObject) mergeObject(host, njo, entry.getKey());
+                //host = (JsonObject) mergeObject(host, njo, entry.getKey());
             } else if (host.get(entry.getKey()).isJsonPrimitive()) {
-                host = (JsonObject) mergeObject(host, njo, entry.getKey());
+                host = (JsonObject) add(host, njo, entry.getKey());
             } else { //if (host.get(entry.getKey()).isJsonArray()){
                 //JsonElement subHost = host.get(entry.getKey());
-                host = (JsonObject) mergeObject(host, njo, entry.getKey());
+                host = (JsonObject) add(host, njo, entry.getKey());
             } else {
-                host = mergeObject(subHost, njo, entry.getKey());
+                //host = add(subHost, njo, entry.getKey());
             }*/
             //JsonElement subHost = host.get(entry.getKey());
-            host = (JsonObject) mergeObject(host.getAsJsonObject(entry.getKey()), njo, entry.getKey());
+            host = add(host.getAsJsonObject().get(entry.getKey()), njo, entry.getKey());
         }
         return host;
     }
@@ -76,7 +77,7 @@ public class JsonTools {
                 host = mergeObject(subHost, njo, entry.getKey());
             }*/
             //JsonElement subHost = host.get(entry.getKey());
-            host = (JsonObject) mergeObject(host, njo, entry.getKey());
+            host = (JsonObject) add(host, njo, entry.getKey());
         }
         return host;
     }

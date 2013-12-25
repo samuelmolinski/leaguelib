@@ -25,9 +25,9 @@ public class JsonToolTest {
         JsonObject addition2 = (JsonObject) jt.fromString(str2);
         JsonObject addition3 = (JsonObject) jt.fromString(str3);
 
-        //jor = (JsonObject) jt.mergeObject(host, addition1);
-        jor = (JsonObject) jt.mergeObject(addition1, addition2);
-        //jor = (JsonObject) jt.mergeObject(host, addition);
+        //jor = (JsonObject) jt.add(host, addition1);
+        jor = (JsonObject) jt.add(addition1, addition2);
+        //jor = (JsonObject) jt.add(host, addition);
 
         System.out.println(jor.toString());
         System.out.println("--END--");
