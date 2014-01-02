@@ -80,16 +80,16 @@ public class EchSummonerService extends LeagueAbstractService {
         });
     }
 
-    public LeagueSummoner getSummonerByName(String name) throws LeagueException {
+    public TypedObject getSummonerByName(String name) throws LeagueException {
         TypedObject obj = call("getSummonerByName", new Object[] { name });
-        return getSummonerFromResult(obj, name);
+        return obj.getTO("body");
     }
 
-    public void getSummonerByName(final String name, final Callback<LeagueSummoner> callback) {
+    public void getSummonerByName(final String name, final Callback<TypedObject> callback) {
         callAsynchronously("getSummonerByName", new Object[]{name}, new Callback<TypedObject>() {
             public void onCompletion(TypedObject obj) {
                 try {
-                    callback.onCompletion(getSummonerFromResult(obj, name));
+                    callback.onCompletion(obj.getTO("body"));
                 } catch (Exception ex) {
                     callback.onError(ex);
                 }
@@ -101,25 +101,17 @@ public class EchSummonerService extends LeagueAbstractService {
         });
     }
 
-    public void fillPublicSummonerData(LeagueSummoner summoner) throws LeagueException {
-        TypedObject obj = call("getAllPublicSummonerDataByAccount", new Object[] { summoner.getAccountId() });
-        summoner.setProfileInfo(new LeagueSummonerProfileInfo(obj.getTO("body").getTO("summoner")));
+    public TypedObject fillPublicSummonerData(int accountId) throws LeagueException {
+        TypedObject obj = call("getAllPublicSummonerDataByAccount", new Object[] { accountId });
+        //summoner.setProfileInfo(new LeagueSummonerProfileInfo(obj.getTO("body").getTO("summoner")));
+        return obj.getTO("body");
     }
 
-    public void fillPublicSummonerData(final LeagueSummoner summoner, final Callback<JsonObject> callback) {
-        callAsynchronously("getAllPublicSummonerDataByAccount", new Object[]{summoner.getAccountId()}, new Callback<TypedObject>() {
+    public void fillPublicSummonerData(final int accountId, final Callback<TypedObject> callback) {
+        callAsynchronously("getAllPublicSummonerDataByAccount", new Object[]{accountId}, new Callback<TypedObject>() {
             public void onCompletion(TypedObject obj) {
                 try {
-                    Gson gson = new Gson();
-                    String json = gson.toJson(obj);
-                    JsonParser jp = new JsonParser();
-                    JsonObject jo = (JsonObject) jp.parse(json);
-
-                    System.out.println("- JSON - ");
-                    System.out.println(json);
-                    //summoner.setProfileInfo(new LeagueSummonerProfileInfo(obj.getTO("body").getTO("summoner")));
-
-                    callback.onCompletion(jo);
+                    callback.onCompletion(obj.getTO("body"));
                 } catch (Exception ex) {
                     callback.onError(ex);
                 }

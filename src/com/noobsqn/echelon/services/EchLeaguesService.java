@@ -36,27 +36,37 @@ public class EchLeaguesService  extends LeagueAbstractService {
     //     return super.handleResult(result);
     // }
 
-    public void fillSoloQueueLeagueData(LeagueSummoner summoner) throws LeagueException {
-        TypedObject obj = call("getLeagueForPlayer", new Object[] { summoner.getId(), LeagueMatchmakingQueue.RANKED_SOLO_5x5.toString() });
+    public TypedObject fillSoloQueueLeagueData(final int accountId) throws LeagueException {
+        TypedObject obj = call("getLeagueForPlayer", new Object[] { accountId, LeagueMatchmakingQueue.RANKED_SOLO_5x5.toString() });
         if(obj == null || obj.getTO("body") == null) {
-            summoner.setLeagueStats(null);
-            return;
+            return new TypedObject();
         }
-        summoner.setLeagueStats(new LeagueSummonerLeagueStats(obj.getTO("body")));
+        return obj.getTO("body");
     }
 
-    public void fillSoloQueueLeagueData(final LeagueSummoner summoner, final Callback<LeagueSummoner> callback) {
-        callAsynchronously("getLeagueForPlayer", new Object[] { summoner.getId(), LeagueMatchmakingQueue.RANKED_SOLO_5x5.toString() }, new Callback<TypedObject>() {
+    public void fillSoloQueueLeagueData(final int accountId, final Callback<TypedObject> callback) {
+        callAsynchronously("getLeagueForPlayer", new Object[] { accountId, LeagueMatchmakingQueue.RANKED_SOLO_5x5.toString() }, new Callback<TypedObject>() {
             public void onCompletion(TypedObject obj) {
-                try {
-                    if(obj == null || obj.getTO("body") == null)
+                    /*if(obj == null || obj.getTO("body") == null)
                         summoner.setLeagueStats(null);
                     else
-                        summoner.setLeagueStats(new LeagueSummonerLeagueStats(obj.getTO("body")));
-                    callback.onCompletion(summoner);
-                } catch(LeagueException ex) {
-                    callback.onError(ex);
-                }
+                        summoner.setLeagueStats(new LeagueSummonerLeagueStats(obj.getTO("body")));*/
+                callback.onCompletion(obj.getTO("body"));
+            }
+            public void onError(Exception ex) {
+                callback.onError(ex);
+            }
+        });
+    }
+
+    public void fillThreesQueueLeagueData(final int accountId, final Callback<TypedObject> callback) {
+        callAsynchronously("getLeagueForPlayer", new Object[] { accountId, LeagueMatchmakingQueue.RANKED_TEAM_3x3.toString() }, new Callback<TypedObject>() {
+            public void onCompletion(TypedObject obj) {
+                    /*if(obj == null || obj.getTO("body") == null)
+                        summoner.setLeagueStats(null);
+                    else
+                        summoner.setLeagueStats(new LeagueSummonerLeagueStats(obj.getTO("body")));*/
+                callback.onCompletion(obj.getTO("body"));
             }
             public void onError(Exception ex) {
                 callback.onError(ex);

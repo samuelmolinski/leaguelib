@@ -8,10 +8,12 @@ import com.achimala.leaguelib.models.LeagueSummonerRankedStats;
 import com.achimala.leaguelib.models.MatchHistoryEntry;
 import com.achimala.leaguelib.services.LeagueAbstractService;
 import com.achimala.util.Callback;
+import com.google.gson.JsonObject;
 import com.gvaneyck.rtmp.TypedObject;
 import com.noobsqn.echelon.connection.EchLeagueConnection;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -28,17 +30,33 @@ public class EchPlayerStatsService extends LeagueAbstractService {
         return "playerStatsService";
     }
 
-    public void fillRankedStats(LeagueSummoner summoner) throws LeagueException {
-        TypedObject obj = call("getAggregatedStats", new Object[] { summoner.getAccountId(), SUMMONERS_RIFT, LeagueCompetitiveSeason.CURRENT.getNumber() });
-        summoner.setRankedStats(new LeagueSummonerRankedStats(obj.getTO("body")));
+    public TypedObject fillRankedStats(final int accountId) throws LeagueException {
+        TypedObject obj = call("getAggregatedStats", new Object[] { accountId, SUMMONERS_RIFT, LeagueCompetitiveSeason.CURRENT.getNumber() });
+        return obj.getTO("body");
     }
 
-    public void fillRankedStats(final LeagueSummoner summoner, final Callback<LeagueSummoner> callback) {
-        callAsynchronously("getAggregatedStats", new Object[] { summoner.getAccountId(), SUMMONERS_RIFT, LeagueCompetitiveSeason.CURRENT.getNumber() }, new Callback<TypedObject>() {
+    public void fillRankedStats(final int accountId, final Callback<TypedObject> callback) {
+        callAsynchronously("getAggregatedStats", new Object[] { accountId, SUMMONERS_RIFT, LeagueCompetitiveSeason.CURRENT.getNumber() }, new Callback<TypedObject>() {
             public void onCompletion(TypedObject obj) {
                 try {
-                    summoner.setRankedStats(new LeagueSummonerRankedStats(obj.getTO("body")));
-                    callback.onCompletion(summoner);
+                    //summoner.setRankedStats(new LeagueSummonerRankedStats(obj.getTO("body")));
+                    callback.onCompletion(obj.getTO("body"));
+                } catch(Exception ex) {
+                    callback.onError(ex);
+                }
+            }
+
+            public void onError(Exception ex) {
+                callback.onError(ex);
+            }
+        });
+    }
+    public void fillRankedThreesStats(final int accountId, final Callback<TypedObject> callback) {
+        callAsynchronously("getAggregatedStats", new Object[] { accountId, SUMMONERS_RIFT, LeagueCompetitiveSeason.CURRENT.getNumber() }, new Callback<TypedObject>() {
+            public void onCompletion(TypedObject obj) {
+                try {
+                    //summoner.setRankedStats(new LeagueSummonerRankedStats(obj.getTO("body")));
+                    callback.onCompletion(obj.getTO("body"));
                 } catch(Exception ex) {
                     callback.onError(ex);
                 }
@@ -61,21 +79,21 @@ public class EchPlayerStatsService extends LeagueAbstractService {
         return recentGames;
     }
 
-    public void fillMatchHistory(LeagueSummoner summoner) throws LeagueException {
+    public TypedObject fillMatchHistory(final int accountId) throws LeagueException {
         // IMPORTANT: Riot doesn't provide the summoner names of fellow players, only IDs
         // This means that after calling fillMatchHistory, the match history of the summoner is populated
         // but each match history entry's players only have valid IDs!
         // You have to call SummonerService->getSummonerNames to batch resolve the IDs to names
         // TODO: Automate this process somehow...
-        TypedObject obj = call("getRecentGames", new Object[] { summoner.getAccountId() });
-        summoner.setMatchHistory(getMatchHistoryEntriesFromResult(obj, summoner));
+        TypedObject obj = call("getRecentGames", new Object[] { accountId });
+        return obj.getTO("body");
     }
 
-    public void fillMatchHistory(final LeagueSummoner summoner, final Callback<LeagueSummoner> callback) {
-        callAsynchronously("getRecentGames", new Object[] { summoner.getAccountId() }, new Callback<TypedObject>() {
+    public void fillMatchHistory(final int accountId, final Callback<TypedObject> callback) {
+        callAsynchronously("getRecentGames", new Object[] { accountId }, new Callback<TypedObject>() {
             public void onCompletion(TypedObject obj) {
-                summoner.setMatchHistory(getMatchHistoryEntriesFromResult(obj, summoner));
-                callback.onCompletion(summoner);
+                //summoner.setMatchHistory(getMatchHistoryEntriesFromResult(obj, summoner));
+                callback.onCompletion(obj.getTO("body"));
             }
             public void onError(Exception ex) {
                 callback.onError(ex);

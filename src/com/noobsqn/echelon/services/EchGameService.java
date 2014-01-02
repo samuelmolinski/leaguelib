@@ -7,6 +7,7 @@ import com.achimala.leaguelib.models.LeagueGame;
 import com.achimala.leaguelib.models.LeagueSummoner;
 import com.achimala.leaguelib.services.LeagueAbstractService;
 import com.achimala.util.Callback;
+import com.google.gson.JsonObject;
 import com.gvaneyck.rtmp.TypedObject;
 import com.noobsqn.echelon.connection.EchLeagueConnection;
 
@@ -43,16 +44,21 @@ public class EchGameService extends LeagueAbstractService {
         }
     }
 
-    public void fillActiveGameData(LeagueSummoner summoner) throws LeagueException {
-        TypedObject obj = call("retrieveInProgressSpectatorGameInfo", new Object[] { summoner.getInternalName() });
-        createAndSetGame(summoner, obj);
+    public TypedObject fillActiveGameData(final String name) throws LeagueException {
+        TypedObject obj = call("retrieveInProgressSpectatorGameInfo", new Object[] { name });
+        //createAndSetGame(summoner, obj);
+        return obj.getTO("body");
     }
 
-    public void fillActiveGameData(final LeagueSummoner summoner, final Callback<LeagueSummoner> callback) {
-        callAsynchronously("retrieveInProgressSpectatorGameInfo", new Object[] { summoner.getInternalName() }, new Callback<TypedObject>() {
+    public void fillActiveGameData(final String summonerName, final Callback<TypedObject> callback) {
+        callAsynchronously("retrieveInProgressSpectatorGameInfo", new Object[] { summonerName }, new Callback<TypedObject>() {
             public void onCompletion(TypedObject obj) {
-                createAndSetGame(summoner, obj);
-                callback.onCompletion(summoner);
+                //createAndSetGame(summoner, obj);
+                if(null != obj){
+                    callback.onCompletion(obj.getTO("body"));
+                } else {
+                    callback.onCompletion(obj);
+                }
             }
 
             public void onError(Exception ex) {

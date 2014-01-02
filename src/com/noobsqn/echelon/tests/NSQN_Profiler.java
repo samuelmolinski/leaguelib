@@ -6,8 +6,14 @@ import com.achimala.leaguelib.models.*;
 import com.achimala.leaguelib.errors.*;
 import com.achimala.util.Callback;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.gvaneyck.rtmp.TypedObject;
+import com.noobsqn.echelon.connection.EchLeagueConnection;
+import com.noobsqn.util.JsonTools;
 
+import java.util.Date;
 import java.util.Map;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -20,6 +26,18 @@ public class NSQN_Profiler {
     private static int count = 0;
     private static ReentrantLock lock = new ReentrantLock();
     private static Condition done = lock.newCondition();
+    private static EchLeagueConnection c;
+
+    public NSQN_Profiler() throws LeagueException {
+        c = new EchLeagueConnection(LeagueServer.BRAZIL);
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.15.13_12_13_16_07", "noobsqnbot01", "n00bsqnb0t"));
+
+        Map<LeagueAccount, LeagueException> exceptions = c.connection.getAccountQueue().connectAll();
+        if(exceptions != null) {
+            for(LeagueAccount account : exceptions.keySet())
+                System.out.println(account + " error: " + exceptions.get(account));
+        }
+    }
 
     private static void incrementCount() {
         lock.lock();
@@ -37,59 +55,109 @@ public class NSQN_Profiler {
         lock.unlock();
     }
 
-
     public static void main(String[] args) throws Exception {
-        final LeagueConnection c = new LeagueConnection(LeagueServer.BRAZIL);
-        c.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.15.13_12_13_16_07", "noobsqnbot01", "n00bsqnb0t"));
-        //final String SUMMONER_TO_LOOK_UP = "Infernal Mole";
-        //final String SUMMONER_TO_LOOK_UP = "Nidhoggur";
-        final Gson summonerProfile = new Gson();
-        final LeagueSummoner s = new LeagueSummoner();
-        final String SUMMONER_TO_LOOK_UP = "zGuli";
+        establistConnection();
 
-        Map<LeagueAccount, LeagueException> exceptions = c.getAccountQueue().connectAll();
+        long start_time = System.currentTimeMillis();
+        int reps = 20;
+        JsonObject summonerProfile = new JsonObject();
+        for (int i = 0; i < reps; i++) {
+            //JsonObject summonerProfile = (JsonObject) getSummoner("zGuli");
+            summonerProfile = (JsonObject) getSummonerAsync("zGuli");
+        }
+        //JsonObject summonerProfile = (JsonObject) getSummonerAsync("zGuli");
+
+        System.out.println("#####summonerProfile######");
+        System.out.println(summonerProfile.toString());
+        System.out.println("##########################");
+
+        long end_time = System.currentTimeMillis();
+        double difference = (end_time - start_time);
+        double average = difference/reps;
+        System.out.println("Exucution Time: "+difference);
+        System.out.println("Exucution Avg Time: "+average);
+    }
+
+    public static void establistConnection() throws LeagueException {
+        c = new EchLeagueConnection(LeagueServer.BRAZIL);
+        String version = "3.15.13_12_13_16_07";
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot01", "n00bsqnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot02", "n00b$qnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot03", "n00b$qnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot04", "n00bsqnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot05", "n00bsqnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot06", "n00bsqnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot07", "n00bsqnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot08", "n00bsqnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot09", "n00bsqnb0t"));
+        c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, version, "noobsqnbot10", "n00bsqnb0t"));
+
+        Map<LeagueAccount, LeagueException> exceptions = c.connection.getAccountQueue().connectAll();
         if(exceptions != null) {
             for(LeagueAccount account : exceptions.keySet())
                 System.out.println(account + " error: " + exceptions.get(account));
-            return;
         }
+    }
+
+    public static JsonElement getSummoner(String SUMMONER_TO_LOOK_UP) throws LeagueException {
+        JsonTools jt = new JsonTools();
+        final JsonObject summonerProfile = new JsonObject();
+
+        jt.add(summonerProfile, c.getEchSummonerService().getSummonerByName(SUMMONER_TO_LOOK_UP));
+        jt.add(summonerProfile, c.getEchSummonerService().fillPublicSummonerData((int) summonerProfile.get("acctId").getAsFloat()));
+        jt.add(summonerProfile, c.getEchLeaguesService().fillSoloQueueLeagueData((int) summonerProfile.get("acctId").getAsFloat()));
+        jt.add(summonerProfile, c.getEchPlayerStatsService().fillRankedStats((int) summonerProfile.get("acctId").getAsFloat()));
+        jt.add(summonerProfile, c.getEchPlayerStatsService().fillMatchHistory((int) summonerProfile.get("acctId").getAsFloat()));
+        // don't need active game info
+        //jt.add(summonerProfile, c.getEchGameService().fillActiveGameData(summonerProfile.getAsJsonObject().get("internalName").getAsString()));
+        return summonerProfile;
+    }
+
+    public static JsonElement getSummonerAsync(final String SUMMONER_TO_LOOK_UP) throws Exception {
+        //long start_time = System.currentTimeMillis();
+        //final EchLeagueConnection c = new EchLeagueConnection(LeagueServer.BRAZIL);
+        //c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.15.13_12_13_16_07", "noobsqnbot01", "n00bsqnb0t"));
+        //c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.15.13_12_13_16_07", "noobsqnbot02", "n00b$qnb0t"));
+        //c.connection.getAccountQueue().addAccount(new LeagueAccount(LeagueServer.BRAZIL, "3.15.13_12_13_16_07", "noobsqnbot03", "n00b$qnb0t"));
+        //final String SUMMONER_TO_LOOK_UP = "Infernal Mole";
+        //final String SUMMONER_TO_LOOK_UP = "Nidhoggur";
+        final Gson converter = new Gson();
+        final JsonObject summonerProfile = new JsonObject();
+        final JsonArray fetchedData = new JsonArray();
+        final JsonTools jt = new JsonTools();
+        final LeagueSummoner s = new LeagueSummoner();
+        //final String SUMMONER_TO_LOOK_UP = "giiux";
 
         lock.lock();
         incrementCount();
-        c.getSummonerService().getSummonerByName(SUMMONER_TO_LOOK_UP, new Callback<LeagueSummoner>() {
-            public void onCompletion(LeagueSummoner summoner) {
+        System.out.println("Getting Summoner by name...");
+        c.getEchSummonerService().getSummonerByName(SUMMONER_TO_LOOK_UP, new Callback<TypedObject>() {
+            public void onCompletion(TypedObject obj) {
                 lock.lock();
 
-                System.out.println(summoner.getName() + ":");
-                System.out.println(summoner.getInternalName() + ":");
-                System.out.println("    accountID:  " + summoner.getAccountId());
-                System.out.println("    summonerID: " + summoner.getId());
+                String str = converter.toJson(obj);
+                JsonElement je = jt.fromString(str);
+                //fetchedData.add(je);
+                jt.add(summonerProfile, je);
 
                 incrementCount();
-                System.out.println("Getting profile data...");
-                /*summonerProfile.addProperty("id", summoner.getId());
-                summonerProfile.addProperty("accountId", summoner.getAccountId());
-                summonerProfile.addProperty("profileIconId", summoner.getProfileIconId());
-                summonerProfile.addProperty("level", summoner.getLevel());
-                summonerProfile.addProperty("name", summoner.getName());
-                summonerProfile.addProperty("internalname", summoner.getInternalName());
-                summonerProfile.add("server", new JsonObject());
-                summonerProfile.getAsJsonObject("server").addProperty("serverCode", summoner.getServer().getServerCode());
-                summonerProfile.getAsJsonObject("server").addProperty("publicName", summoner.getServer().getPublicName());
-                summonerProfile.getAsJsonObject("server").addProperty("name", summoner.getServer().getPublicName());*/
-                summonerProfile.toJson(summoner);
-                c.getSummonerService().fillPublicSummonerData(summoner, new Callback<LeagueSummoner>() {
-                    public void onCompletion(LeagueSummoner summoner) {
+                System.out.println("Filling Summoner Profile...");
+                c.getEchSummonerService().fillPublicSummonerData((int) summonerProfile.get("acctId").getAsFloat(), new Callback<TypedObject>() {
+                    public void onCompletion(TypedObject summoner) {
                         lock.lock();
-                        System.out.println("Profile:");
-                        System.out.println("    Prev Highest Tier: " + summoner.getProfileInfo().getPreviousSeasonHighestTier());
-                        System.out.println();
+                        System.out.println("fillPublicSummonerData...");
+
+                        String str = converter.toJson(summoner);
+                        JsonElement je = jt.fromString(str);
+                        JsonArray cleanPages = jt.filterBookPages(je.getAsJsonObject().get("spellBook").getAsJsonObject().get("bookPages").getAsJsonObject().get("array").getAsJsonArray());
+                        je.getAsJsonObject().get("spellBook").getAsJsonObject().get("bookPages").getAsJsonObject().add("array", null);
+                        je.getAsJsonObject().get("spellBook").getAsJsonObject().get("bookPages").getAsJsonObject().add("array", cleanPages);
+                        //fetchedData.add(cleanPages);
+                        //fetchedData.add(je);
+                        jt.add(summonerProfile, je);
+
+
                         System.out.flush();
-                        summonerProfile.toJson(summoner);
-                        /*summonerProfile.add("profileInfo", new JsonObject());
-                        summonerProfile.getAsJsonObject("profileInfo").add("previousSeasonHighestTier", new JsonObject());
-                        summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("previousSeasonHighestTier").addProperty("name", summoner.getProfileInfo().getPreviousSeasonHighestTier().name());
-                        summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("previousSeasonHighestTier").addProperty("ordinal", summoner.getProfileInfo().getPreviousSeasonHighestTier().ordinal());*/
                         decrementCount();
                         lock.unlock();
                     }
@@ -103,46 +171,17 @@ public class NSQN_Profiler {
                 });
 
                 incrementCount();
-                System.out.println("Getting leagues data...");
-                c.getLeaguesService().fillSoloQueueLeagueData(summoner, new Callback<LeagueSummoner>() {
-                    public void onCompletion(LeagueSummoner summoner) {
+                System.out.println("Getting Solo Queue Data...");
+                c.getEchLeaguesService().fillSoloQueueLeagueData((int) summonerProfile.get("acctId").getAsFloat(), new Callback<TypedObject>() {
+                    public void onCompletion(TypedObject summoner) {
                         lock.lock();
-                        LeagueSummonerLeagueStats stats = summoner.getLeagueStats();
-                        if (stats != null) {
-                            System.out.println("League:");
-                            System.out.println("    Name: " + stats.getLeagueName());
-                            System.out.println("    Tier: " + stats.getTier());
-                            System.out.println("    Rank: " + stats.getRank());
-                            System.out.println("    Wins: " + stats.getWins());
-                            System.out.println("    ~Elo: " + stats.getApproximateElo());
-                        } else {
-                            System.out.println("NOT IN LEAGUE");
-                        }
-                        System.out.println();
-                        System.out.flush();
-                        /*summonerProfile.add("leagueStats", new JsonObject());
-                        summonerProfile.getAsJsonObject("leagueStats").add("queue", new JsonObject());
-                        summonerProfile.getAsJsonObject("leagueStats").getAsJsonObject("queue").addProperty("name", summoner.getLeagueStats().getMatchmakingQueue().name());
-                        summonerProfile.getAsJsonObject("leagueStats").getAsJsonObject("queue").addProperty("ordinal", summoner.getLeagueStats().getMatchmakingQueue().ordinal());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getLeagueName());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getPreviousDayLeaguePosition());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getWins());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getLosses());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getLeaguePoints());
-                        summonerProfile.getAsJsonObject("profileInfo").add("tier", new JsonObject());
-                        summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("tier").addProperty("name", summoner.getLeagueStats().getTier().name());
-                        summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("tier").addProperty("ordinal", summoner.getLeagueStats().getTier().ordinal());
-                        summonerProfile.getAsJsonObject("profileInfo").add("rank", new JsonObject());
-                        summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("rank").addProperty("name", summoner.getLeagueStats().getRank().name());
-                        summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("rank").addProperty("ordinal", summoner.getLeagueStats().getRank().ordinal());*/
-                        /*summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getInactive());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getVeteran());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getHotStreak());
-                        summonerProfile.getAsJsonObject("leagueStats").addProperty("leagueName", summoner.getLeagueStats().getFreshBlood());*/
-                        //summonerProfile.getAsJsonObject("profileInfo").add("miniseries", new JsonObject());
-                        //summonerProfile.getAsJsonObject("profileInfo").getAsJsonObject("miniseries").addProperty("target", summoner.getLeagueStats().getMiniSeries().getTarget());
+                        System.out.println("fillSoloQueueLeagueData...");
 
-                        summonerProfile.toJson(summoner);
+                        String str = converter.toJson(summoner);
+                        JsonElement je = jt.fromString(str);
+                        //fetchedData.add(je);
+                        jt.add(summonerProfile, je);
+
                         decrementCount();
                         lock.unlock();
                     }
@@ -156,25 +195,22 @@ public class NSQN_Profiler {
                 });
 
                 incrementCount();
-                System.out.println("Getting champ data...");
-                c.getPlayerStatsService().fillRankedStats(summoner, new Callback<LeagueSummoner>() {
-                    public void onCompletion(LeagueSummoner summoner) {
+                System.out.println("Filling Rank Stats...");
+                c.getEchPlayerStatsService().fillRankedStats((int) summonerProfile.get("acctId").getAsFloat(), new Callback<TypedObject>() {
+                    public void onCompletion(TypedObject summoner) {
                         lock.lock();
-                        for(LeagueChampion champ : summoner.getRankedStats().getAllPlayedChampions())
-                            System.out.println("Has played " + champ.getName());
+                        System.out.println("fillRankedStats...");
 
-                        LeagueChampion champ = LeagueChampion.getChampionWithName("Anivia");
-                        Map<LeagueRankedStatType, Integer> stats = summoner.getRankedStats().getAllStatsForChampion(champ);
-                        if(stats == null) {
-                            System.out.println("No stats for " + champ);
-                        } else {
-                            System.out.println("All stats for " + champ + ":");
-                            for(LeagueRankedStatType type : LeagueRankedStatType.values())
-                                System.out.println("    " + type + " = " + stats.get(type));
-                            System.out.println();
-                        }
-                        System.out.flush();
-                        summonerProfile.toJson(summoner);
+                        String str = converter.toJson(summoner);
+                        JsonElement je = jt.fromString(str);
+
+                        JsonArray champsSort = jt.filterChamps(je.getAsJsonObject().get("lifetimeStatistics").getAsJsonObject().get("array").getAsJsonArray());
+                        je.getAsJsonObject().get("lifetimeStatistics").getAsJsonObject().add("array", null);
+                        je.getAsJsonObject().get("lifetimeStatistics").getAsJsonObject().add("array", champsSort);
+
+                        //fetchedData.add(je);
+                        jt.add(summonerProfile, je);
+
                         decrementCount();
                         lock.unlock();
                     }
@@ -188,38 +224,69 @@ public class NSQN_Profiler {
                 });
 
                 incrementCount();
-                System.out.println("Getting game data...");
-                c.getGameService().fillActiveGameData(summoner, new Callback<LeagueSummoner>() {
-                    public void onCompletion(LeagueSummoner summoner) {
+                System.out.println("Filling Game History...");
+                c.getEchPlayerStatsService().fillMatchHistory((int) summonerProfile.get("acctId").getAsFloat(), new Callback<TypedObject>() {
+                    public void onCompletion(TypedObject summoner) {
                         lock.lock();
-                        if(summoner.getActiveGame() != null) {
-                            LeagueGame game = summoner.getActiveGame();
-                            System.out.println("PLAYER TEAM (" + game.getPlayerTeamType() + "):");
-                            for(LeagueSummoner sum : summoner.getActiveGame().getPlayerTeam())
-                                System.out.println("    " + sum);
-                            System.out.println("ENEMY TEAM (" + game.getEnemyTeamType() + "):");
-                            for(LeagueSummoner sum : summoner.getActiveGame().getEnemyTeam())
-                                System.out.println("    " + sum);
-                            System.out.println("PLAYER TEAM BANS:");
-                            for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getPlayerTeamType()))
-                                System.out.println("    " + champion.getName());
-                            System.out.println("ENEMY TEAM BANS:");
-                            for(LeagueChampion champion : game.getBannedChampionsForTeam(game.getEnemyTeamType()))
-                                System.out.println("    " + champion.getName());
-                        } else {
-                            System.out.println("NOT IN GAME");
+                        System.out.println("fillMatchHistory...");
+
+                        String str = converter.toJson(summoner);
+                        JsonElement je = jt.fromString(str);
+
+                        JsonArray MatchesSort = jt.filterMatchHistroy((int) summonerProfile.get("acctId").getAsFloat(), je.getAsJsonObject().get("gameStatistics").getAsJsonObject().get("array").getAsJsonArray());
+                        je.getAsJsonObject().get("gameStatistics").getAsJsonObject().add("array", null);
+                        je.getAsJsonObject().get("gameStatistics").getAsJsonObject().add("array", MatchesSort);
+
+                        //
+                        MatchBuilder mb = new MatchBuilder();
+                        try {
+                            mb.buildMatch(c, (JsonObject) MatchesSort.get(9), new Callback<JsonObject>() {
+                                public void onCompletion(JsonObject result) {
+                                    fetchedData.add(result);
+                                }
+                                public void onError(Exception ex) {
+
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                        System.out.println();
-                        System.out.flush();
-                        summonerProfile.toJson(summoner);
+                        jt.add(summonerProfile, je);
+
                         decrementCount();
                         lock.unlock();
                     }
 
                     public void onError(Exception ex) {
                         lock.lock();
-                        if(ex instanceof LeagueException) {
-                            System.out.println(((LeagueException)ex).getErrorCode());
+                        System.out.println(ex.getMessage());
+                        decrementCount();
+                        lock.unlock();
+                    }
+                });
+
+
+                incrementCount();
+                System.out.println("Filling Active Game Data...");
+                c.getEchGameService().fillActiveGameData(summonerProfile.getAsJsonObject().get("internalName").getAsString(), new Callback<TypedObject>() {
+                    public void onCompletion(TypedObject summoner) {
+                        lock.lock();
+                        System.out.println("fillActiveGameData...");
+
+                        String str = converter.toJson(summoner);
+                        JsonElement je = jt.fromString(str);
+                        //fetchedData.add(je);
+                        if (null != je) {
+                            jt.add(summonerProfile, je);
+                        }
+                        decrementCount();
+                        lock.unlock();
+                    }
+
+                    public void onError(Exception ex) {
+                        lock.lock();
+                        if (ex instanceof LeagueException) {
+                            System.out.println(((LeagueException) ex).getErrorCode());
                         } else {
                             System.out.println(ex.getMessage());
                         }
@@ -241,12 +308,18 @@ public class NSQN_Profiler {
 
         System.out.println("Out here, waiting for it to finish");
         done.await();
-        //summonerProfile.toJson(c);
+        /*//summonerProfile.toJson(c);
+        System.out.println("#####summonerProfile######");
+        System.out.println(summonerProfile.toString());
+        System.out.println("#######fetchedData########");
+        System.out.println(fetchedData.toString());
         System.out.println("##########################");
-        //System.out.println(summonerProfile);
-        System.out.println("##########################");
-        // c.getInternalRTMPClient().join();
+        // c.getInternalRTMPClient().join();*/
         System.out.println("Client joined, terminating");
+        //long end_time = System.currentTimeMillis();
+        //double difference = (end_time - start_time);
+        //System.out.println("Exucution Time: "+difference);
         lock.unlock();
+        return summonerProfile;
     }
 }
