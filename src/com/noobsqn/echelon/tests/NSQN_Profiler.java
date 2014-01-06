@@ -59,11 +59,11 @@ public class NSQN_Profiler {
         establistConnection();
 
         long start_time = System.currentTimeMillis();
-        int reps = 20;
+        int reps = 1;
         JsonObject summonerProfile = new JsonObject();
         for (int i = 0; i < reps; i++) {
-            //JsonObject summonerProfile = (JsonObject) getSummoner("zGuli");
-            summonerProfile = (JsonObject) getSummonerAsync("zGuli");
+            summonerProfile = (JsonObject) getSummoner("Infernal Mole");
+            //summonerProfile = (JsonObject) getSummonerAsync("zGuli");
         }
         //JsonObject summonerProfile = (JsonObject) getSummonerAsync("zGuli");
 
